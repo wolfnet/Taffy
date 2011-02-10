@@ -14,10 +14,7 @@
 			if (structKeyExists(this.beans, arguments.beanName)){
 				return true;
 			}
-			else
-			{
-				throw ("Bean name '#arguments.beanName#' not found.", "Taffy Resource");
-			}
+			return false;
 		}
 		function getBean(beanName){
 			if (beanExists(arguments.beanName)){
