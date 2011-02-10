@@ -6,10 +6,6 @@
 		function init(){
 			return this;
 		}
-		// Proxy to beanExists to provide similar interface to ColdSpring
-		function containsBean(beanName){
-			return beanExists(arguments.beanName);
-		}
 		function beanExists(beanName){
 			if (structKeyExists(this.beans, arguments.beanName)){
 				return true;
