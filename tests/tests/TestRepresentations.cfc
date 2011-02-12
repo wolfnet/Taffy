@@ -1,4 +1,4 @@
-component extends="baseTest" {
+component extends="mxunit.framework.TestCase" {
 
 	function beforeTests(){
 		variables.representation = createObject("taffy.core.baseRepresentation");

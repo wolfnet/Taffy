@@ -11,16 +11,13 @@
 			return beanExists(arguments.beanName);
 		}
 		function beanExists(beanName){
-			if (structKeyExists(this.beans, arguments.beanName)){
-				return true;
-			}
-			return false;
+			return structKeyExists(this.beans, arguments.beanName);
 		}
 		function getBean(beanName){
 			if (beanExists(arguments.beanName)){
 				return this.beans[arguments.beanName];
 			}else{
-				return false;
+				throw ("Bean name '#arguments.beanName#' not found.", "TaffyFactory");
 			}
 		}
 		function getBeanList(){
@@ -65,10 +62,6 @@
 		<cfif structKeyExists(arguments.metaData, "extends") and isStruct(arguments.metaData.extends)>
 			<cfset _recurse_ResolveDependencies(arguments.beanName, arguments.metaData.extends) />
 		</cfif>
-	</cffunction>
-	<!--- proxy function for CF8 compatibility --->
-	<cffunction name="throwError">
-		<cfthrow attributecollection="#arguments#" />
 	</cffunction>
 
 </cfcomponent>
