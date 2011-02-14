@@ -7,9 +7,4 @@
 		<cfreturn representationOf(arguments).withStatus(999).withHeaders(local.headers) />
 	</cffunction>
 
-	<cffunction name="put">
-		<cfargument name="id" />
-		<cfreturn representationOf(arguments).withStatus(200) />
-	</cffunction>
-
 </cfcomponent>

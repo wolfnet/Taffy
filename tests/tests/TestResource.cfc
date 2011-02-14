@@ -11,20 +11,7 @@ component extends="baseTest" {
 		local.result = variables.resource.representationOf(10);
 		local.meta = getMetadata(local.result);
 		debug(local.meta);
-		assertEquals(true, eventuallyInherits(local.meta, 'taffy.core.baseRepresentation'));
-	}
-
-	//recursive method used to check entire inheritance tree to find that a certain parent class exists somewhere within it
-	private function eventuallyInherits(md,class) output="false" returntype="boolean" {
-		if (structKeyExists(md, "fullname") && md.fullname eq class){
-			return true;
-		}else{
-			if (structKeyExists(md, "extends")){
-				return eventuallyInherits(md.extends, class);
-			}else{
-				return false;
-			}
-		}
+		assertEquals('taffy.core.baseRepresentation',local.meta.extends.fullName);
 	}
 
 }
