@@ -11,13 +11,16 @@
 			return beanExists(arguments.beanName);
 		}
 		function beanExists(beanName){
-			return structKeyExists(this.beans, arguments.beanName);
+			if (structKeyExists(this.beans, arguments.beanName)){
+				return true;
+			}
+			return false;
 		}
 		function getBean(beanName){
 			if (beanExists(arguments.beanName)){
 				return this.beans[arguments.beanName];
 			}else{
-				throwError ("Bean name '#arguments.beanName#' not found.", "TaffyFactory");
+				return false;
 			}
 		}
 		function getBeanList(){
