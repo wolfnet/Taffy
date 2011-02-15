@@ -5,7 +5,6 @@ component extends="taffy.core.api"{
 		enableDashboard(true);
 		setUnhandledPaths('/taffy/tests/someFolder');
 		setGlobalHeaders({"x-foo-globalheader"="snafu"});
-		setDefaultRepresentationClass("customJsonRepresentation");
 	}
 
 	public function onTaffyRequest(verb, cfc, requestArguments, mimeExt, headers){
