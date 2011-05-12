@@ -33,7 +33,7 @@
 		<!--- if browsing to root of api, redirect to dashboard --->
 		<cfif len(cgi.path_info) lte 1 and len(cgi.query_string) eq 0 and listLast(cgi.script_name, "/") eq "index.cfm">
 			<cfset local.basePath = listDeleteAt(cgi.script_name,listLen(cgi.script_name,"/"),"/") />
-			<cflocation url="#local.basePath#/?#application._taffy.settings.dashboardKey#" addtoken="false" />
+			<cflocation url="#local.basePath#?#application._taffy.settings.dashboardKey#" addtoken="false" />
 		</cfif>
 		<!--- this will probably happen if taffy is sharing an app name with an existing application so that you can use its application context --->
 		<cfif not structKeyExists(application, "_taffy")>
@@ -76,7 +76,6 @@
 				<cfset data.tagContext = root.tagContext[1].template & " [Line #root.tagContext[1].line#]" />
 			</cfif>
 			<cfoutput>#serializeJson(data)#</cfoutput>
-			<cfheader statuscode="500" statustext="Error" />
 			<cfcatch>
 				<cfcontent reset="true" type="text/plain" />
 				<cfoutput>An unhandled exception occurred: <cfif structKeyExists(root,"message")>#root.message#</cfif> <cfif structKeyExists(root,"detail")>-- #root.detail#</cfif></cfoutput>
@@ -370,7 +369,7 @@
 		<cfset local.uriRegex = arguments.uri />
 		<cfloop array="#local.almostTokens#" index="local.token">
 			<cfset arrayAppend(local.returnData.tokens, replaceList(local.token, "{,}", ",")) />
-			<cfset local.uriRegex = rereplaceNoCase(local.uriRegex,"{[^}]+}", "([^\/]+)") />
+			<cfset local.uriRegex = rereplaceNoCase(local.uriRegex,"{[^}]+}", "([^\/\.]+)") />
 		</cfloop>
 
 		<!--- require the uri to terminate after specified content --->
@@ -438,13 +437,10 @@
 			</cfloop>
 		</cfif>
 		<!--- if a mime type is requested as part of the url ("whatever.json"), then extract that so taffy can use it --->
-		<cfif listContainsNoCase(structKeyList(application._taffy.settings.mimeExtensions), listLast(arguments.uri,"."))>
-			<!--- the last token has a format after it --->
-			<cfset local.mime = listLast(local.returnData[arguments.tokenNamesArray[local.numTokenNames]], ".") />
+		<cfif local.numTokenValues gt local.numTokenNames>
+			<cfset local.mime = local.tokenValues[local.numTokenValues] /><!--- the last token represents ".json"/etc --->
 			<cfset local.mimeLen = len(local.mime) />
-			<cfset local.returnData["_taffy_mime"] = local.mime />
-			<!--- remove format from last token value --->
-			<cfset local.returnData[arguments.tokenNamesArray[local.numTokenNames]] = left(local.returnData[arguments.tokenNamesArray[local.numTokenNames]], len(local.returnData[arguments.tokenNamesArray[local.numTokenNames]])-local.mimeLen-1) /><!--- extra -1 for the dot --->
+			<cfset local.returnData["_taffy_mime"] = right(local.mime, local.mimeLen - 1) />
 		</cfif>
 		<!--- return --->
 		<cfreturn local.returnData />
@@ -477,7 +473,7 @@
 				<cfif structKeyExists(application._taffy.endpoints, local.metaInfo.uriRegex)>
 					<cfthrow
 						message="Duplicate URI scheme detected. All URIs must be unique (excluding tokens)."
-						detail="The URI for `#local.beanName#` conflicts with the existing URI definition of `#application._taffy.endpoints[local.metaInfo.uriRegex].beanName#`"
+						detail="The URI for `#beanName#` conflicts with the existing URI definition of `#application._taffy.endpoints[metaInfo.uriRegex].beanName#`"
 						errorcode="taffy.resources.DuplicateUriPattern"
 					/>
 				</cfif>
