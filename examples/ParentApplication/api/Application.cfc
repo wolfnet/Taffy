@@ -4,10 +4,8 @@ component extends="taffy.core.api" {
 
 	//do your onApplicationStart stuff here
 	function applicationStartEvent(){
-		if (!structKeyExists(application, "beanFactory")){
-			application.beanFactory = createObject("component", "coldspring.beans.DefaultXMLBeanFactory");
-			application.beanFactory.loadBeans('/taffy/examples/ParentApplication/config/coldspring.xml');
-		}
+		application.beanFactory = createObject("component", "coldspring.beans.DefaultXMLBeanFactory");
+		application.beanFactory.loadBeans('/taffy/examples/ParentApplication/config/coldspring.xml');
 
 		param name="application.init" default="#structNew()#";
 		application.init.api = true;
