@@ -520,14 +520,7 @@
 	<cffunction name="throwError" access="private" output="false" returntype="void">
 		<cfargument name="statusCode" type="numeric" default="500" />
 		<cfargument name="msg" type="string" required="true" hint="message to return to api consumer" />
-		<cfargument name="headers" type="struct" required="false" default="#structNew()#" />
-		<cfset var h = '' />
 		<cfcontent reset="true" />
-		<cfif !structIsEmpty(arguments.headers)>
-			<cfloop list="#structKeyList(arguments.headers)#" index="h">
-				<cfheader name="#h#" value="#arguments.headers#" />
-			</cfloop>
-		</cfif>
 		<cfheader statuscode="#arguments.statusCode#" statustext="#arguments.msg#" />
 		<cfabort />
 	</cffunction>
@@ -815,6 +808,16 @@
 
 	<cffunction name="getPath" output="false" access="public" returntype="String" hint="This method returns just the URI portion of the URL, and makes it easier to port Taffy to other platforms by subclassing this method to match the way the platform works. The default behavior is tested and works on Adobe ColdFusion 9.0.1.">
 		<cfreturn cgi.path_info />
+	</cffunction>
+
+	<cffunction name="addHeaders" access="public" output="false" returntype="void">
+		<cfargument name="headers" type="struct" required="true" />
+		<cfset var h = '' />
+		<cfif !structIsEmpty(arguments.headers)>
+			<cfloop list="#structKeyList(arguments.headers)#" index="h">
+				<cfheader name="#h#" value="#arguments.headers[h]#" />
+			</cfloop>
+		</cfif>
 	</cffunction>
 
 	<cffunction name="isUnhandledPathRequest" access="private" returntype="boolean">
