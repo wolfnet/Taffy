@@ -375,7 +375,7 @@
 		<cfset structAppend(requestObj.requestArguments, form) />
 
 		<!--- use requested mime type or the default --->
-		<cfset requestObj.returnMimeExt = application._taffy.settings.defaultMime />
+		<cfset requestObj.returnMimeExt = "" />
 		<cfif structKeyExists(requestObj.requestArguments, "_taffy_mime")>
 			<cfset requestObj.returnMimeExt = requestObj.requestArguments._taffy_mime />
 			<cfset structDelete(requestObj.requestArguments, "_taffy_mime") />
@@ -389,6 +389,7 @@
 			<cfelseif not structKeyExists(application._taffy.settings.mimeExtensions, application._taffy.settings.defaultMime)>
 				<cfset throwError(400, "Your default mime type is not implemented") />
 			</cfif>
+			<cfset requestObj.returnMimeExt = application._taffy.settings.defaultMime />
 		</cfif>
 		<cfreturn requestObj />
 	</cffunction>
@@ -470,7 +471,11 @@
 			</cfif>
 		</cfloop>
 		<!--- if a mime type is requested as part of the url ("whatever.json"), then extract that so taffy can use it --->
+<<<<<<< HEAD
+		<cfif listlen(arguments.uri,".") gt 1>
+=======
 		<cfif listLen(arguments.uri,".") gt 1>
+>>>>>>> 1.1-rc
 			<cfset local.mime = listLast(arguments.uri, ".") />
 			<cfset local.returnData["_taffy_mime"] = local.mime />
 			<cfheader name="x-deprecation-warning" value="Specifying return format as '.#local.mime#' is deprecated. Please use the HTTP Accept header when possible." />
