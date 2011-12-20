@@ -1,4 +1,4 @@
-<cfcomponent extends="base">
+<cfcomponent extends="baseTest">
 	<cfscript>
 
 		function beforeTests(){
@@ -7,11 +7,10 @@
 		}
 
 		function throws_on_getBean_not_exists(){
-			var local = {};
-			local.nonExistentBean = "does_not_exist";
+			var nonExistentBean = "does_not_exist";
 			
 			try{
-				local.result = variables.factory.getBean(local.nonExistentBean);
+				var result = variables.factory.getBean(nonExistentBean);
 				fail("Expected 'Bean Not Found' exception to be thrown, but none was.");
 			} catch (Taffy.Factory.BeanNotFound e) {
 				//debug(e);

@@ -1,5 +1,5 @@
-<cfcomponent extends="base">
-	<cfscript>
+component extends="baseTest" {
+
 	function beforeTests(){
 		variables.taffy = createObject("component","taffy.tests.Application");
 		variables.resource = createObject("component", "taffy.core.resource");
@@ -13,24 +13,18 @@
 		debug(local.meta);
 		assertEquals(true, eventuallyInherits(local.meta, 'taffy.core.baseRepresentation'));
 	}
-	</cfscript>
 
-	<!--- recursive method used to check entire inheritance tree to find that a certain parent class exists somewhere within it --->
-	<cffunction name="eventuallyInherits" access="private" output="false" returntype="boolean">
-		<cfargument name="md" type="struct" required="true" />
-		<cfargument name="class" type="string" required="true" />
-		
-		<cfscript>
-			if (structKeyExists(md, "fullname") && md.fullname eq class) {
-				return true;
-			} else {
-				if (structKeyExists(md, "extends"))
-				{
-					return eventuallyInherits(md.extends, class);
-				} else {
-					return false;
-				}
+	//recursive method used to check entire inheritance tree to find that a certain parent class exists somewhere within it
+	private function eventuallyInherits(md,class) output="false" returntype="boolean" {
+		if (structKeyExists(md, "fullname") && md.fullname eq class){
+			return true;
+		}else{
+			if (structKeyExists(md, "extends")){
+				return eventuallyInherits(md.extends, class);
+			}else{
+				return false;
 			}
-		</cfscript>
-	</cffunction>
-</cfcomponent>
+		}
+	}
+
+}

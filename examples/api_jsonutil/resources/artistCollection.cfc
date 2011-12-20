@@ -2,12 +2,10 @@
 
 	<cffunction name="get" access="public" output="false">
 		<cfset var q = "" />
-		<cfset var headers = structNew() />
 		<cfquery name="q" datasource="cfartgallery" cachedwithin="#createTimeSpan(0,0,0,1)#">
 			select * from artists
 		</cfquery>
-		<cfset headers["x-powered-by"] = "Taffy 1.1" />
-		<cfreturn representationOf(q).withStatus(200).withHeaders(headers) />
+		<cfreturn representationOf(q).withStatus(200).withHeaders({"x-powered-by" = "Taffy 1.0"}) />
 	</cffunction>
 
 	<cffunction name="post" access="public" output="false">

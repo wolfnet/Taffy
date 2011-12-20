@@ -8,8 +8,8 @@
 	public string function getAs]]></starttext>
 <endtext><![CDATA[()
 	output="false"
-	taffy_mime=""
-	taffy_default=""
+	taffy:mime=""
+	taffy:default=""
 	{
 		return serializeToMyCustomFormat(variables.data);
 	} 
