@@ -6,7 +6,7 @@
 	</cffunction>
 	
 	
-	<cffunction name="getAsJsonP" access="public" output="false" taffy:mime="application/text">
+	<cffunction name="getAsJsonP" access="public" output="false" taffy:mime="application/javascript">
 		<cfset var _ = structNew() />
 		
 		<cfif !structKeyExists(url,"callback")>
