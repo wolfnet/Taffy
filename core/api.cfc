@@ -38,7 +38,7 @@
 		</cfif>
 		<!--- allow reloading --->
 		<cfif structKeyExists(url, application._taffy.settings.reloadKey) and url[application._taffy.settings.reloadKey] eq application._taffy.settings.reloadPassword>
-			<cfif !reloadedInThisRequest><!--- prevent double reloads --->
+			<cfif !local.reloadedInThisRequest><!--- prevent double reloads --->
 				<cfset onApplicationStart() />
 			</cfif>
 		</cfif>
