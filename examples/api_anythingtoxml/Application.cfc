@@ -3,11 +3,12 @@
 
 		this.name = hash(getCurrentTemplatePath());
 
-		variables.framework = {};
-		variables.framework.defaultRepresentationClass = "taffy.bonus.AnythingToXmlRepresentation";
-
 		function applicationStartEvent(){
 			application.anythingToXml = createObject("component", "anythingtoxml.AnythingToXML").init();
+		}
+
+		function configureTaffy(){
+			setDefaultRepresentationClass("taffy.bonus.AnythingToXmlRepresentation");
 		}
 
 	</cfscript>
