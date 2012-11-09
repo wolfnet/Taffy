@@ -4,7 +4,7 @@
 		<cfargument name="config" />
 		<cfargument name="tracker" />
 	</cffunction>
-	<cffunction name="log" hint="I log or otherwise notify you of an exception">
+	<cffunction name="logit" hint="I log or otherwise notify you of an exception">
 		<cfargument name="exception" />
 	</cffunction>
 
