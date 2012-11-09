@@ -162,8 +162,8 @@
 		</cfif>
 
 		<cfset local.allowVerbs = uCase(structKeyList(_taffyRequest.matchDetails.methods)) />
-		<cfif application._taffy.settings.allowCrossDomain 
-				AND listFindNoCase('PUT,DELETE,OPTIONS',_taffyRequest.verb) 
+		<cfif application._taffy.settings.allowCrossDomain
+				AND listFindNoCase('PUT,DELETE,OPTIONS',_taffyRequest.verb)
 				AND NOT listFind(local.allowVerbs,'OPTIONS')>
 		    <cfset local.allowVerbs = listAppend(local.allowVerbs,'OPTIONS') />
 		</cfif>
@@ -286,6 +286,7 @@
 		<cfset local.defaultConfig.dashboardKey = "dashboard" />
 		<cfset local.defaultConfig.disableDashboard = false />
 		<cfset local.defaultConfig.unhandledPaths = "/flex2gateway" />
+		<cfset local.defaultConfig.resourcesPath = "/resources" />
 		<cfset local.defaultConfig.allowCrossDomain = false />
 		<cfset local.defaultConfig.globalHeaders = structNew() />
 		<cfset local.defaultConfig.returnExceptionsAsJson = true />
@@ -615,7 +616,7 @@
 
 	<cffunction name="guessResourcesPath" access="private" output="false" returntype="string" hint="used to try and figure out the absolute path of the /resources folder even though this file may not be in the web root">
 		<cfset local.indexcfmpath = cgi.script_name />
-		<cfset local.resourcesPath = listDeleteAt(local.indexcfmpath, listLen(local.indexcfmpath, "/"), "/") & "/resources" />
+		<cfset local.resourcesPath = listDeleteAt(local.indexcfmpath, listLen(local.indexcfmpath, "/"), "/") & application._taffy.settings.resourcesPath />
                 <cfif GetContextRoot() NEQ "">
                         <cfset local.resourcesPath = ReReplace(local.resourcesPath,"^#GetContextRoot()#","")>
                 </cfif>
