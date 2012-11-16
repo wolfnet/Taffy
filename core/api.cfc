@@ -74,13 +74,17 @@
 		<cfargument name="exception" />
 		<cfset var data = {} />
 		<cfset var root = '' />
+		
 		<cfset var logger = '' />
+		<cfdump var="#exception#"><CFABORT>
 		<cftry>
 			<cfset logger = createObject("component", application._taffy.settings.exceptionLogAdapter).init(
 				application._taffy.settings.exceptionLogAdapterConfig
 			) />
 			<cfset logger.logit(exception) />
 
+			<cfdump var="#exception#"><CFABORT>
+			
 			<!--- return 500 no matter what --->
 			<cfheader statuscode="500" statustext="Error" />
 			<cfcontent reset="true" />
