@@ -83,6 +83,7 @@
 		<cfif left(beanPath, 1) eq ".">
 			<cfset beanPath = right(beanPath, len(beanPath)-1) />
 		</cfif>
+		<cfset beanPath = replace(beanPath,"..",".","ALL") />
 		<cfreturn beanPath />
 	</cffunction>
 
