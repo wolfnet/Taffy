@@ -249,11 +249,12 @@
 				<cfif _taffyRequest.resultSerialized neq ('"' & '"')>
 					<cfoutput>#_taffyRequest.resultSerialized#</cfoutput>
 				</cfif>
-				<!--- debug output --->
+				<!--- debug output 
 				<cfif structKeyExists(url, application._taffy.settings.debugKey)>
 					<cfoutput><h3>Request Details:</h3><cfdump var="#_taffyRequest#"></cfoutput>
 				</cfif>
-
+				--->
+				
 			<cfelseif _taffyRequest.resultType eq "filename">
 				<cfcontent reset="true" file="#_taffyRequest.result.getFileName()#" type="#_taffyRequest.result.getFileMime()#" />
 
