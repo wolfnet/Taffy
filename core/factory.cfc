@@ -63,7 +63,7 @@
 		<cfargument name="filename" />
 		<cfargument name="basepath" />
 		<cfset var beanPath = 
-			"resources."
+			ListGetAt(basepath,listLen(basepath,"/"),"/") & "."
 			&
 			replace(
 				replace(path, basepath, ""), 
