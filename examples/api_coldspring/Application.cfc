@@ -7,15 +7,16 @@
 		variables.framework.debugKey = "debug";
 		variables.framework.reloadKey = "reload";
 		variables.framework.reloadPassword = "true";
-		variables.framework.defaultRepresentationClass = "taffy.core.nativeJsonRepresentation";
+		variables.framework.representationClass = "taffy.core.nativeJsonRepresentation";
 
-		//do your onApplicationStart stuff here
-		function applicationStartEvent(){
+		function onApplicationStart(){
 			application.beanFactory = createObject("component", "coldspring.beans.DefaultXMLBeanFactory");
 			application.beanFactory.loadBeans('/taffy/examples/api_coldspring/config/coldspring.xml');
 
 			//note that we're modifying variables.framework here, after the application variable has been set
 			variables.framework.beanFactory = application.beanFactory;
+
+			return super.onApplicationStart();
 		}
 
 	</cfscript>

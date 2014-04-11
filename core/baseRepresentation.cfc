@@ -6,9 +6,10 @@
 	<cfset variables.statusCode = 200 />
 	<cfset variables.statusText = "OK" />
 	<cfset variables.miscHeaders = StructNew() />
+	<cfset variables.deleteFile = false />
 	<!--- 1= textual, 2= filename, 3= file data --->
 	<cfset variables.type = 1 />
-	<cfset variales.types = StructNew() />
+	<cfset variables.types = StructNew() />
 	<cfset variables.types[1] = "textual" />
 	<cfset variables.types[2] = "filename" />
 	<cfset variables.types[3] = "filedata" />
@@ -36,7 +37,7 @@
 	<cffunction name="setFileName" access="public" output="false" hint="Pass in a file-name (fully qualified, e.g. c:\temp\img.jpg) to have Taffy stream this file back to the client">
 		<cfargument name="file" type="string" required="true" />
 		<cfset variables.type = 2 />
-		<cfset variables.fileName = file />
+		<cfset variables.fileName = arguments.file />
 		<cfreturn this />
 	</cffunction>
 
@@ -47,7 +48,7 @@
 	<cffunction name="setFileData" access="public" output="false" hint="Pass in file data (eg a generated PDF object) - NOT a Filename! - to have Taffy stream the content back to the client">
 		<cfargument name="data" required="true" />
 		<cfset variables.type = 3 />
-		<cfset variables.fileData = data />
+		<cfset variables.fileData = arguments.data />
 		<cfreturn this />
 	</cffunction>
 
@@ -59,9 +60,9 @@
 		<cfargument name="data" required="true" />
 		<cfset variables.type = 4 />
 		<cfif not isBinary(arguments.data)>
-			<cfset data = toBinary(toBase64(arguments.data)) />
+			<cfset arguments.data = toBinary(toBase64(arguments.data)) />
 		</cfif>
-		<cfset variables.fileData = data />
+		<cfset variables.fileData = arguments.data />
 		<cfreturn this />
 	</cffunction>
 
@@ -105,6 +106,16 @@
 
 	<cffunction name="getHeaders" access="public" output="false" returntype="Struct">
 		<cfreturn variables.miscHeaders />
+	</cffunction>
+
+	<cffunction name="andDeleteFile" access="public" output="false" hint="used to delete the streamed file">
+		<cfargument name="doDeleteFile" type="boolean" required="true" />
+		<cfset variables.deleteFile = arguments.doDeleteFile />
+		<cfreturn this />
+	</cffunction>
+
+	<cffunction name="getDeleteFile" access="public" output="false" returntype="boolean">
+		<cfreturn variables.deleteFile />
 	</cffunction>
 
 </cfcomponent>

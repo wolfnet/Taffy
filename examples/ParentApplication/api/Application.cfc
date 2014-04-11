@@ -2,17 +2,15 @@ component extends="taffy.core.api" {
 
 	this.name = "taffy_ParentAppExample";//same name as api folder application.cfc
 
-	//do your onApplicationStart stuff here
-	function applicationStartEvent(){
+	variables.framework = {};
+	variables.framework.beanFactory = "";
+
+	function onApplicationStart(){
 		include "../mixin/appInit.cfm";
-	}
 
-	//called when taffy is initializing or when a reload is requested
-	void function configureTaffy(){
+		variables.framework.beanFactory = application.beanFactory;
 
-		//application.beanFactory is defined in the mixin
-		setBeanFactory(application.beanFactory);
-
+		return super.onApplicationStart();
 	}
 
 }

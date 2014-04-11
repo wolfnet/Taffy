@@ -2,25 +2,47 @@
 <snippet filetemplate="false" extension="">
 <name>Application cfc-script</name>
 <help>Creates an Application.cfc skeleton for a Taffy API using cfscript syntax</help>
-<starttext><![CDATA[component extends="taffy.core.api"{ 	this.name = "]]></starttext>
+<starttext><![CDATA[component extends="taffy.core.api"
+{
+
+	this.name = "]]></starttext>
 <endtext><![CDATA[";
 
-	function applicationStartEvent()
-	{
+	variables.framework = {
+		reloadKey = "reload"
+		,reloadPassword = "true"
+		,reloadOnEveryRequest = false
+		,defaultRepresentationClass = "taffy.core.nativeJsonRepresentation"
+		,dashboardKey = "dashboard"
+		,disableDashboard = false
+		,unhandledPaths = "/flex2gateway"
+		,allowCrossDomain = false
+		,globalHeaders = structNew()
+		,debugKey = "debug"
+		,returnExceptionsAsJson = true
+		,exceptionLogAdapter = "taffy.bonus.LogToEmail"
+		,exceptionLogAdapterConfig = {
+			emailFrom = "api-error@yourdomain.com"
+			,emailTo = "you@yourdomain.com"
+			,emailSubj = "Exception Trapped in API"
+			,emailType = "html"
+		}
+		,beanFactory = ""
 	}
 
-	function requestStartEvent()
+
+	function onApplicationStart()
 	{
+		return super.onApplicationStart();
 	}
 
-	function onTaffyRequest(verb,cfc,requestArguments,mimeExt,headers)
+	function onRequestStart()
 	{
+		return super.onRequestStart();
 	}
 
-	function configureTaffy()
+	function onTaffyRequest(verb,cfc,requestArguments,mimeExt,headers,methodMetadata)
 	{
-		enableDashboard(true);
-		setUnhandledPaths('/flex2gateway');
 	}
 
 }]]></endtext>

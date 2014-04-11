@@ -1,9 +1,17 @@
 <cfcomponent extends="base">
 
-	<cfscript>
+	<cffunction name="setup">
+		<cfset local.apiRootURL	= getDirectoryFromPath(cgi.script_name) />
+		<cfset local.apiRootURL	= listDeleteAt(local.apiRootURL,listLen(local.apiRootURL,'/'),'/') />
+		<cfhttp method="GET" url="http://#CGI.SERVER_NAME#:#CGI.SERVER_PORT##local.apiRootURL#/index.cfm?#application._taffy.settings.reloadkey#=#application._taffy.settings.reloadPassword#" />
+	</cffunction>
 
+	<cfscript>
 		function beforeTests(){
 			variables.taffy = createObject("component","taffy.tests.Application");
+			makePublic(variables.taffy, "getBeanFactory");
+			variables.factory = variables.taffy.getBeanFactory();
+			variables.factory.loadBeansFromPath( expandPath('/taffy/tests/resources'), 'taffy.tests.resources', expandPath('/taffy/tests/resources'), true );
 		}
 
 		function properly_notifies_unimplemented_mimes(){
@@ -19,6 +27,21 @@
 			debug(variables.taffy);
 			variables.taffy.inspectMimeTypes('taffy.core.nativeJsonRepresentation');
 			assertTrue(taffy.mimeSupported("json"), "When given a mime type that should be supported, Taffy reported that it was not.");
+		}
+
+		function returns_etag_header(){
+			local.result = apiCall("get", "/echo/foo.json", "");
+			debug(local.result);
+			assertTrue(structKeyExists(local.result.responseHeader, "Etag"));
+			assertEquals("99805", local.result.responseHeader.etag);
+		}
+
+		function returns_304_when_not_modified(){
+			local.h = {};
+			local.h['if-none-match'] = "99805";
+			local.result = apiCall("get", "/echo/foo.json", "", local.h);
+			debug(local.result);
+			assertEquals(304, val(local.result.responseHeader.status_code));
 		}
 
 		function json_result_is_json(){
@@ -51,30 +74,26 @@
 
 			local.result = taffy.convertURItoRegex("/a/{abc}/b");
 			debug(local.result);
-			/* Since CF8, 9, etc don't all serialize the same, we'll do this in a little longer form to be more portable
-			assertEquals("{""uriregex"":""\/a\/([^\\\/\\.]+)\/b(\\.[^\\.\\?]+)?$"",""tokens"":[""abc""]}",
-							serializeJson(local.result),
-							"The expected result of the conversion did not match the actual result.");*/
-			assertEquals( "^/a/([^\/]+)/b((?:\.)[^\.\?]+)?$", local.result["uriregex"], "Resulted regex did not match expected. (assert 1)");
+			assertEquals( "^/a/([^\/]+)/b((?:\.)[^\.\?\/]+)?\/?$", local.result["uriregex"], "Resulted regex did not match expected. (assert 1)");
 			assertEquals( 1, arrayLen(local.result["tokens"]), "assert 2" );
 			assertEquals( "abc", local.result["tokens"][1], "assert 3" );
 
 			local.result2 = taffy.convertURItoRegex("/a/{abc}");
 			debug(local.result2);
-			assertEquals( "^/a/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))|([^\/\.]+))((?:\.)[^\.\?]+)?$", local.result2["uriregex"], "Resulted regex did not match expected.");
+			assertEquals( "^/a/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))\/?|([^\/\.]+))((?:\.)[^\.\?\/]+)?\/?$", local.result2["uriregex"], "Resulted regex did not match expected.");
 			assertEquals( 1, arrayLen(local.result2["tokens"]) );
 			assertEquals( "abc", local.result2["tokens"][1] );
 
 			//custom regexes for tokens
 			local.result3 = taffy.convertURItoRegex("/a/{b:[a-z]+(?:42){1}}");
 			debug(local.result3);
-			assertEquals( "^/a/([a-z]+(?:42){1})((?:\.)[^\.\?]+)?$", local.result3["uriregex"], "Resulted regex did not match expected. (assert 7)");
+			assertEquals( "^/a/([a-z]+(?:42){1})((?:\.)[^\.\?\/]+)?\/?$", local.result3["uriregex"], "Resulted regex did not match expected. (assert 7)");
 			assertEquals( 1, arrayLen(local.result3["tokens"]), "assert 8" );
 			assertEquals( "b", local.result3["tokens"][1], "assert 9" );
 
 			local.result4 = taffy.convertURItoRegex("/a/{b:[0-4]{1,7}(?:aaa){1}}/c/{d:\d+}");
 			debug(local.result4);
-			assertEquals( "^/a/([0-4]{1,7}(?:aaa){1})/c/(\d+)((?:\.)[^\.\?]+)?$", local.result4["uriregex"], "Resulted regex did not match expected. (assert 10)");
+			assertEquals( "^/a/([0-4]{1,7}(?:aaa){1})/c/(\d+)((?:\.)[^\.\?\/]+)?\/?$", local.result4["uriregex"], "Resulted regex did not match expected. (assert 10)");
 			assertEquals( 2, arrayLen(local.result4["tokens"]), "assert 11" );
 			assertEquals( "b", local.result4["tokens"][1], "assert 12" );
 			assertEquals( "d", local.result4["tokens"][2], "assert 13" );
@@ -84,14 +103,38 @@
 			makePublic(variables.taffy, "matchURI");
 			local.result = variables.taffy.matchURI("/echo/3.json");
 			debug(local.result);
-			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))|([^\/\.]+))((?:\.)[^\.\?]+)?$', local.result);
+			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))\/?|([^\/\.]+))((?:\.)[^\.\?\/]+)?\/?$', local.result);
 		}
 
 		function uri_matching_works_without_extension(){
 			makePublic(variables.taffy, "matchURI");
 			local.result = variables.taffy.matchURI("/echo/3");
 			debug(local.result);
-			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))|([^\/\.]+))((?:\.)[^\.\?]+)?$', local.result);
+			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))\/?|([^\/\.]+))((?:\.)[^\.\?\/]+)?\/?$', local.result);
+		}
+
+		function uri_matching_works_with_trailing_slash_with_extension(){
+			makePublic(variables.taffy, "matchURI");
+			local.result = variables.taffy.matchURI("/echo/3.json/");
+			debug(local.result);
+			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))\/?|([^\/\.]+))((?:\.)[^\.\?\/]+)?\/?$', local.result);
+		}
+
+		function uri_matching_works_with_trailing_slash_without_extension(){
+			makePublic(variables.taffy, "matchURI");
+			local.result = variables.taffy.matchURI("/echo/3/");
+			debug(local.result);
+			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))\/?|([^\/\.]+))((?:\.)[^\.\?\/]+)?\/?$', local.result);
+		}
+
+		function uri_matching_is_sorted_so_static_URIs_take_priority_over_tokens(){
+			makePublic(variables.taffy, "matchURI");
+			local.result = variables.taffy.matchURI("/echo/3");
+			debug(local.result);
+			assertEquals('^/echo/(?:(?:([^\/\.]+)(?:\.)([a-za-z0-9]+))\/?|([^\/\.]+))((?:\.)[^\.\?\/]+)?\/?$', local.result);
+			local.result = variables.taffy.matchURI("/echo/towel");
+			debug(local.result);
+			assertEquals('^/echo/towel((?:\.)[^\.\?\/]+)?\/?$', local.result);
 		}
 
 		function request_parsing_works(){
@@ -147,14 +190,16 @@
 		}
 
 		function returns_error_when_default_mime_not_implemented(){
+			makePublic(variables.taffy, "setDefaultMime");
 			variables.taffy.setDefaultMime("DoesNotExist");
 			local.result = apiCall("get", "/echo/2", "foo=bar");
 			debug(local.result);
 			assertEquals(400, local.result.responseHeader.status_code);
-			assertEquals("Your default mime type is not implemented", local.result.responseHeader.explanation);
+			assertEquals("Your default mime type (DoesNotExist) is not implemented", local.result.responseHeader.explanation);
 		}
 
 		function returns_error_when_requested_mime_not_supported(){
+			makePublic(variables.taffy, "setDefaultMime");
 			variables.taffy.setDefaultMime("application/json");
 			local.h = structNew();
 			local.h['Accept'] = "application/NOPE";
@@ -165,6 +210,7 @@
 		}
 
 		function extension_takes_precedence_over_accept_header(){
+			makePublic(variables.taffy, "setDefaultMime");
 			variables.taffy.setDefaultMime("text/json");
 			local.headers = structNew();
 			local.headers["Accept"] = "text/xml";
@@ -268,7 +314,7 @@
 			debug( local.deserializedContent );
 
 			// The service response should contain only the ID parameter, and not anything parsed from the body
-			assertEquals("id,foo", structKeylist(local.deserializedContent));
+			assertEquals("foo,id,password,username", listSort(structKeylist(local.deserializedContent), "textnocase"));
 			assertEquals(12, local.deserializedContent["id"]);
 			assertEquals("The quick brown fox jumped over the lazy dog.", local.deserializedContent["foo"]);
 		}
@@ -276,6 +322,7 @@
 		function put_body_is_url_encoded_params(){
 			var local = {};
 
+			makePublic(variables.taffy, "setDefaultMime");
 			variables.taffy.setDefaultMime("application/json");
 			local.result = apiCall(
 				"put",
@@ -289,7 +336,7 @@
 			debug( local.deserializedContent );
 
 			// The service response should contain the ID parameter and all parsed form fields from the body
-			assertEquals("bar,baz,foo,id", listSort(structKeylist(local.deserializedContent), "textnocase"));
+			assertEquals("bar,baz,foo,id,password,username", listSort(structKeylist(local.deserializedContent), "textnocase"));
 			assertEquals(12, local.deserializedContent["id"]);
 			assertEquals("yankee", local.deserializedContent["foo"]);
 			assertEquals("hotel", local.deserializedContent["bar"]);
@@ -360,6 +407,7 @@
 			assertFalse(structKeyExists(local.result.responseheader, "X-TAFFY-RELOADED"), "Expected reload header to be missing, but it was sent.");
 			application._taffy.settings.reloadOnEveryRequest = true;
 			local.result2 = apiCall("get", "/echo/dude.json", "");
+			debug(local.result2);
 			assertTrue(structKeyExists(local.result2.responseheader, "X-TAFFY-RELOADED"), "Expected reload header to be sent, but it was missing.");
 		}
 
@@ -370,15 +418,142 @@
 			assertTrue( isJson( local.result.fileContent ), "Response body was not json" );
 		}
 
+		function basic_auth_credentials_found(){
+			local.result = apiCall("get", "/basicauth.json", "", {}, "Towel:42");
+			debug(local.result);
+			assertTrue(isJson(local.result.fileContent));
+			local.data = deserializeJSON(local.result.fileContent);
+			assertTrue(structKeyExists(local.data, "username"));
+			assertEquals("Towel", local.data.username);
+			assertTrue(structKeyExists(local.data, "password"));
+			assertEquals("42", local.data.password);
+		}
+
+		function getHostname_returns_not_blank(){
+			local.hostname = variables.taffy.getHostname();
+			debug(local.hostname);
+			assertNotEquals( "", local.hostname );
+		}
+
+		function envConfig_is_applied(){
+			debug( application._taffy.settings.reloadPassword );
+			assertEquals( "dontpanic", application._taffy.settings.reloadPassword );
+		}
+
+		function use_endpointURLParam_in_GET(){
+			local.result = apiCall('get','?#application._taffy.settings.endpointURLParam#=/echo/2606.json','');
+
+			debug(local.result);
+			assertEquals(999,val(local.result.statusCode));
+		}
+
+		function use_endpointURLParam_in_POST(){
+			local.result = apiCall('post','?#application._taffy.settings.endpointURLParam#=/echo/2606.json','bar=foo');
+
+			debug(local.result);
+			assertEquals(200,val(local.result.statusCode));
+		}
+
+		function use_endpointURLParam_in_PUT(){
+			local.result = apiCall('put','?#application._taffy.settings.endpointURLParam#=/echo/2606.json','bar=foo');
+
+			debug(local.result);
+			assertEquals(200,val(local.result.statusCode));
+		}
+
+		function use_endpointURLParam_in_DELETE(){
+			local.result = apiCall('delete','?#application._taffy.settings.endpointURLParam#=/echo/tunnel/2606.json','');
+
+			debug(local.result);
+			assertEquals(200,val(local.result.statusCode));
+		}
+
+		function allows_dashboard_when_enabled(){
+			var restore = application._taffy.settings.disableDashboard;
+			application._taffy.settings.disableDashboard = false;
+			local.result = apiCall("get", "/", "");
+			debug(local.result);
+			assertEquals(200, val(local.result.statusCode));
+
+			application._taffy.settings.disableDashboard = restore;
+		}
+
+		function returns_403_at_root_when_dashboard_disabled_with_no_redirect(){
+			var restore = application._taffy.settings.disableDashboard;
+			application._taffy.settings.disableDashboard = true;
+			local.result = apiCall("get", "/", "");
+			debug(local.result);
+			assertEquals(403, val(local.result.statusCode));
+
+			application._taffy.settings.disableDashboard = restore;
+		}
+
+		function returns_302_at_root_when_dashboard_disabled_with_redirect(){
+			var restore1 = application._taffy.settings.disableDashboard;
+			var restore2 = application._taffy.settings.disabledDashboardRedirect;
+			application._taffy.settings.disableDashboard = true;
+			application._taffy.settings.disabledDashboardRedirect = 'http://google.com';
+			local.result = apiCall("get", "/", "");
+			debug(local.result);
+			assertEquals(302, val(local.result.statusCode));
+			assertTrue(structKeyExists(local.result.responseHEader, "location"));
+			assertEquals(application._taffy.settings.disabledDashboardRedirect, local.result.responseHeader.location);
+
+			application._taffy.settings.disableDashboard = restore1;
+			application._taffy.settings.disabledDashboardRedirect = restore2;
+		}
+
+		function properly_returns_wrapped_jsonp(){
+			application._taffy.settings.jsonp = "callback";
+			local.result = apiCall("get", "/echo/dude.json?callback=zomg", '');
+			debug(local.result);
+			assertEquals('zomg(', left(local.result.fileContent, 5), "Does not begin with call to jsonp callback");
+			assertEquals(");", right(local.result.fileContent, 2), "Does not end with `);`");
+		}
+
+		function properly_handles_arbitrary_cors_headers(){
+			//see: https://github.com/atuttle/Taffy/issues/144
+			application._taffy.settings.allowCrossDomain = true;
+			local.h = { "Access-Control-Request-Headers" = "goat, pigeon, man-bear-pig"};
+			local.result = apiCall("get", "/echo/dude.json", "", local.h);
+			debug(local.result);
+			assertTrue(local.result.responseHeader["Access-Control-Allow-Headers"] contains "goat");
+			assertTrue(local.result.responseHeader["Access-Control-Allow-Headers"] contains "pigeon");
+			assertTrue(local.result.responseHeader["Access-Control-Allow-Headers"] contains "man-bear-pig");
+		}
+
+		function properly_handles_arbitrary_cors_headers_on_error(){
+			//see: https://github.com/atuttle/Taffy/issues/159
+			application._taffy.settings.allowCrossDomain = true;
+			local.h = { "Access-Control-Request-Headers" = "goat, pigeon, man-bear-pig"};
+			local.result = apiCall("get", "/throwException.json", "", local.h);
+			debug(local.result);
+			assertTrue(structKeyExists(local.result.responseHeader, "Access-Control-Allow-Origin"));
+			assertTrue(structKeyExists(local.result.responseHeader, "Access-Control-Allow-Methods"));
+			assertTrue(structKeyExists(local.result.responseHeader, "Access-Control-Allow-Headers"));
+			assertTrue(local.result.responseHeader["Access-Control-Allow-Headers"] contains "goat");
+			assertTrue(local.result.responseHeader["Access-Control-Allow-Headers"] contains "pigeon");
+			assertTrue(local.result.responseHeader["Access-Control-Allow-Headers"] contains "man-bear-pig");
+		}
+
+		function non_struct_json_body_sent_to_resource_as_underscore_body(){
+			//see: https://github.com/atuttle/Taffy/issues/169
+			local.result = apiCall("post", "/echo/5", "[1,2,3]");
+			debug(local.result);
+			local.response = deserializeJSON(local.result.fileContent);
+			assertTrue(structKeyExists(local.response, "_body"));
+			assertTrue(isArray(local.response._body));
+			assertTrue(arrayLen(local.response._body) == 3);
+		}
 	</cfscript>
 
 
 	<cffunction name="can_upload_a_file">
 		<cfset var local = structNew() />
-		<!--- <cfset debug(cgi) /> --->
-		<cfset variables.taffy.setDefaultMime("text/json") />
+		<cfset local.apiRootURL	= getDirectoryFromPath(cgi.script_name) />
+		<cfset local.apiRootURL	= listDeleteAt(local.apiRootURL,listLen(local.apiRootURL,'/'),'/') />
 		<cfhttp
-			url="http://#cgi.server_name#:#cgi.server_port#/taffy/tests/index.cfm/upload"
+			url="http://#cgi.server_name#:#cgi.server_port##local.apiRootURL#/index.cfm/upload"
 			method="post"
 			result="local.uploadResult">
 			<cfhttpparam type="file" name="img" file="#expandPath('/taffy/tests/tests/upload.png')#" />
