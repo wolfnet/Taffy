@@ -406,6 +406,7 @@
 		<cfset local.defaultConfig.disableDashboard = false />
 		<cfset local.defaultConfig.disabledDashboardRedirect = "" />
 		<cfset local.defaultConfig.unhandledPaths = "/flex2gateway" />
+		<cfset local.defaultConfig.resourcesPath = "/rest" />
 		<cfset local.defaultConfig.allowCrossDomain = false />
 		<cfset local.defaultConfig.useEtags = false />
 		<cfset local.defaultConfig.jsonp = false />
@@ -788,7 +789,7 @@
 
 	<cffunction name="guessResourcesPath" access="private" output="false" returntype="string" hint="used to try and figure out the absolute path of the /resources folder even though this file may not be in the web root">
 		<cfset local.indexcfmpath = cgi.script_name />
-		<cfset local.resourcesPath = listDeleteAt(local.indexcfmpath, listLen(local.indexcfmpath, "/"), "/") & "/resources" />
+		<cfset local.resourcesPath = listDeleteAt(local.indexcfmpath, listLen(local.indexcfmpath, "/"), "/") & application._taffy.settings.resourcesPath />
                 <cfif GetContextRoot() NEQ "">
                         <cfset local.resourcesPath = ReReplace(local.resourcesPath,"^#GetContextRoot()#","")>
                 </cfif>
