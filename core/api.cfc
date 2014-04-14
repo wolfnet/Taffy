@@ -406,7 +406,7 @@
 		<cfset local.defaultConfig.disableDashboard = false />
 		<cfset local.defaultConfig.disabledDashboardRedirect = "" />
 		<cfset local.defaultConfig.unhandledPaths = "/flex2gateway" />
-		<cfset local.defaultConfig.resourcesPath = "/rest" />
+		<cfset local.defaultConfig.resourcesPath = "/resources" />
 		<cfset local.defaultConfig.allowCrossDomain = false />
 		<cfset local.defaultConfig.useEtags = false />
 		<cfset local.defaultConfig.jsonp = false />
