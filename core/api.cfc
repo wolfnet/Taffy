@@ -356,7 +356,9 @@
 				</cfif>
 				<!--- debug output --->
 				<cfif structKeyExists(url, application._taffy.settings.debugKey)>
+					<!---
 					<cfoutput><h3>Request Details:</h3><cfdump var="#_taffyRequest#"></cfoutput>
+					--->
 				</cfif>
 
 			<cfelseif _taffyRequest.resultType eq "filename">
